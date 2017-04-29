@@ -1,0 +1,25 @@
+{
+  "name": "express-rest-generator",
+  "version": "1.0.0",
+  "description": "express mountable app for mongoose routes with generators for mongoose model embedded statics",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"hahahahaha\";"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/dhigginbotham/express-rest-generator.git"
+  },
+  "keywords": [
+    "express",
+    "mongoose",
+    "rest",
+    "sub-app"
+  ],
+  "author": "dhigginbotham@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dhigginbotham/express-rest-generator/issues"
+  },
+  "homepage": "https://github.com/dhigginbotham/express-rest-generator#readme"
+}
