@@ -21,5 +21,11 @@
   "bugs": {
     "url": "https://github.com/dhigginbotham/express-rest-generator/issues"
   },
-  "homepage": "https://github.com/dhigginbotham/express-rest-generator#readme"
+  "homepage": "https://github.com/dhigginbotham/express-rest-generator#readme",
+  "dependencies": {
+    "body-parser": "^1.17.1",
+    "debug": "^2.6.6",
+    "express": "^4.15.2",
+    "lodash": "^4.17.4"
+  }
 }
