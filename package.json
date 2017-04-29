@@ -16,7 +16,7 @@
     "rest",
     "sub-app"
   ],
-  "author": "dhigginbotham@gmail.com",
+  "author": "davehigginbotham@gmail.com",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/dhigginbotham/express-rest-generator/issues"
@@ -27,5 +27,12 @@
     "debug": "^2.6.6",
     "express": "^4.15.2",
     "lodash": "^4.17.4"
+  },
+  "devDependencies": {
+    "eslint": "^3.19.0",
+    "eslint-config-airbnb": "^14.1.0",
+    "eslint-plugin-import": "^2.2.0",
+    "eslint-plugin-jsx-a11y": "^4.0.0",
+    "eslint-plugin-react": "^6.10.3"
   }
 }
