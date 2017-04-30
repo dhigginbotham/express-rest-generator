@@ -1,23 +1,25 @@
-const _ = require('lodash');
 const bodyParser = require('body-parser');
 const log = require('debug')('rest:'); // eslint-disable-line
+const defaultState = {
+  path: null,
+  key: 'collection',
+  privatesKey: null,
+  initializers: [],
+  mutators: [],
+  model: null,
+  statics: null,
+  pageSizeMax: 500,
+  pageSizeDefault: 20,
+  sortBy: '-_id',
+  supports: ['post', 'patch', 'put', 'get', 'delete']
+};
+
 const Rest = function(opts, app) {
   if (!(this instanceof Rest)) return new Rest(opts, app);
 
-  this.path = null;
-  this.key = 'collection';
-  this.privatesKey = null;
-  this.initializers = [];
-  this.mutators = [];
-  this.model = null;
-  this.statics = null;
-  this.pageSizeMax = 500;
-  this.pageSizeDefault = 20;
-  this.sortBy = '-_id';
-  this.supports = ['post', 'patch', 'put', 'get', 'delete'];
-
+  Object.assign(this, defaults);
   // extend options
-  if (opts) _.extend(this, opts);
+  if (opts) Object.assign(this, opts);
 
   if (!this.path) this.path = `/${this.model.modelName.toLowerCase()}`;
 
@@ -44,7 +46,7 @@ const Rest = function(opts, app) {
   // autogenerate routes from model statics,
   // expects express style middleware
   this.generateStatics = function() {
-    if (!this.model.hasOwnProperty(this.statics)) return void 0;
+    if (!this.model.hasOwnProperty(this.statics)) return null;
     function generator(router, key) {
       const route = slugify(key);
       const url = `${this.path}/${route}/:id?`;
@@ -169,8 +171,8 @@ Rest.prototype.get = function(req, res, fn) {
   const { id = null } = params;
   let { limit = this.pageSizeDefault, page = 0 } = query;
   const { sort = this.sortBy } = query;
-  limit = Math.min(this.pageSizeMax, ~~limit);
-  page = ~~page;
+  limit = Math.min(this.pageSizeMax, parseInt(limit, null));
+  page = parseInt(page, null);
   const search = id ? { _id: id } : {};
   return this.model
     .find(_.extend(search, _.omit(query, ['page', 'limit', 'sort'])))
