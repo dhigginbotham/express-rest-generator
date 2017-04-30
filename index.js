@@ -1,37 +1,56 @@
-const _ = require('lodash');
 const bodyParser = require('body-parser');
 const log = require('debug')('rest:'); // eslint-disable-line
+
+// sluggify method names from `camelCase` to `camel-case`
+// used for generating endpoints from statics.
+function slugify(str) {
+  return str.split(/(?=[A-Z])/)
+  .map(word => word.toLowerCase())
+  .join('-');
+}
+
+function deleteKeyFromObject(obj, key) {
+  if (obj._doc.hasOwnProperty(key)) delete obj._doc[key];
+  return obj;
+}
+
+function omit(obj, arr) {
+  arr = !(Array.isArray(arr)) ? [arr] : [];
+  arr.reduce(deleteKeyFromObject, obj);
+}
+
+function toNum(str) {
+  str = parseInt(str, 0);
+  return !(isNaN(str)) ? str : 0;
+}
+
+const defaults = {
+  path: null,
+  key: 'collection',
+  privatesKey: null,
+  initializers: [],
+  mutators: [],
+  model: null,
+  statics: null,
+  pageSizeMax: 500,
+  pageSizeDefault: 20,
+  sortBy: '-_id',
+  supports: ['post', 'patch', 'put', 'get', 'delete']
+};
+
 const Rest = function(opts, app) {
   if (!(this instanceof Rest)) return new Rest(opts, app);
 
-  this.path = null;
-  this.key = 'collection';
-  this.privatesKey = null;
-  this.initializers = [];
-  this.mutators = [];
-  this.model = null;
-  this.statics = null;
-  this.pageSizeMax = 500;
-  this.pageSizeDefault = 20;
-  this.sortBy = '-_id';
-  this.supports = ['post', 'patch', 'put', 'get', 'delete'];
+  Object.assign(this, defaults);
 
   // extend options
-  if (opts) _.extend(this, opts);
+  if (opts) Object.assign(this, opts);
 
   if (!this.path) this.path = `/${this.model.modelName.toLowerCase()}`;
 
   // used by `mutatePrivateKeys`, looks onto the model for
   // a static with provided key
   if (!this.privatesKey) this.privatesKey = 'privateKeys';
-
-  // sluggify method names from `camelCase` to `camel-case`
-  // used for generating endpoints from statics.
-  function slugify(str) {
-    return str.split(/(?=[A-Z])/)
-    .map(word => word.toLowerCase())
-    .join('-');
-  }
 
   // initializes collection array
   this.initializer = function(req, res, next) {
@@ -44,7 +63,7 @@ const Rest = function(opts, app) {
   // autogenerate routes from model statics,
   // expects express style middleware
   this.generateStatics = function() {
-    if (!this.model.hasOwnProperty(this.statics)) return void 0;
+    if (!this.model.hasOwnProperty(this.statics)) return null;
     function generator(router, key) {
       const route = slugify(key);
       const url = `${this.path}/${route}/:id?`;
@@ -87,15 +106,10 @@ const Rest = function(opts, app) {
       : [];
     if (!keys.length) return next();
     req[this.key] = req[this.key]
-      .map((wrapper) => wrapper
-        .map(collection => keys
-          .reduce((obj, key) => {
-            if (obj._doc.hasOwnProperty(key)) delete obj._doc[key];
-            return obj;
-          }, collection)
-        )
+      .map(wrapper => wrapper
+        .map(collection => keys.reduce(deleteKeyFromObject, collection))
       )
-    .shift();
+      .shift();
     return next();
   }.bind(this);
 
@@ -132,10 +146,10 @@ Rest.prototype.createDocument = function(req, res, fn) {
 Rest.prototype.updateDocument = function(req, res, fn) {
   if (!Object.keys(req.body).length) return fn(null, { message: 'Missing required post body' });
   const id = req.params.id ? req.params.id : null;
-  const update = _.omit(req.body, '_id');
+  const update = omit(req.body, '_id');
   return this.model.findById(id, (err, doc) => {
     if (err) return fn(err, null);
-    _.extend(doc, update);
+    Object.assign(doc, update);
     return doc.save(fn);
   });
 };
@@ -169,11 +183,11 @@ Rest.prototype.get = function(req, res, fn) {
   const { id = null } = params;
   let { limit = this.pageSizeDefault, page = 0 } = query;
   const { sort = this.sortBy } = query;
-  limit = Math.min(this.pageSizeMax, ~~limit);
-  page = ~~page;
+  limit = Math.min(this.pageSizeMax, toNum(limit));
+  page = toNum(page);
   const search = id ? { _id: id } : {};
   return this.model
-    .find(_.extend(search, _.omit(query, ['page', 'limit', 'sort'])))
+    .find(Object.assign(search, omit(query, ['page', 'limit', 'sort'])))
     .sort(sort)
     .limit(limit)
     .skip(page > 0 ? (page - 1) * limit : 0)
