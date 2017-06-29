@@ -1,6 +1,6 @@
 {
   "name": "express-rest-api-generator",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "description": "express mountable app for mongoose routes with generators for mongoose model embedded statics",
   "main": "index.js",
   "scripts": {
